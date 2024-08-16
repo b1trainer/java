@@ -27,7 +27,7 @@ public class TaskController {
         return taskMapper.toDto(updatedTask);
     }
 
-    @GetMapping("/{id")
+    @GetMapping("/{id}")
     public TaskDto getById(@PathVariable Long id) {
         Task task = taskService.getByID(id);
 

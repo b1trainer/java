@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: demo
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tasklist?currentSchema=tasklist
+    username: postgres
+    password: password
+    driver-class-name: org.h2.Driver
+  sql:
+    init:
+      mode: always
+      continue-on-error: false
+  #      data-locations: classpath:demo_data.sql
+  security:
+    jwt:
+      secret: YWZzZmFzZGZhN3M4ZGY5OGFzZGY5OGE3c2F5c25kZmRwb2Jta3NncDBzYjA5czBmZGI4
+      accessToken: 360000
+      refresh: 2592000000
