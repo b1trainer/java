@@ -16,3 +16,4 @@ spring:
       secret: YWZzZmFzZGZhN3M4ZGY5OGFzZGY5OGE3c2F5c25kZmRwb2Jta3NncDBzYjA5czBmZGI4
       accessToken: 360000
       refresh: 2592000000
+
