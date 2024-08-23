@@ -8,10 +8,8 @@ import com.example.demo.repository.mappers.TaskRowMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,37 +65,113 @@ public class TaskRepositoryImp implements TaskRepository {
             Connection connection = dataSourceConfig.getConnection();
             PreparedStatement statement = connection.prepareStatement(FIND_BY_ID);
             statement.setLong(1, id);
-            try (ResultSet rs = statement.executeQuery()){
+            try (ResultSet rs = statement.executeQuery()) {
                 return Optional.ofNullable(TaskRowMapper.mapRow(rs));
             }
         } catch (SQLException e) {
             throw new ResourceMappingException("Error while finding user id");
         }
-
     }
 
     @Override
     public List<Task> findByUserId(Long userId) {
-        return null;
+        try {
+            Connection connection = dataSourceConfig.getConnection();
+            PreparedStatement statement = connection.prepareStatement(FIND_ALL_BY_ID);
+            statement.setLong(1, userId);
+            try (ResultSet rs = statement.executeQuery()) {
+                return TaskRowMapper.mapRows(rs);
+            }
+        } catch (SQLException e) {
+            throw new ResourceMappingException("Error while finding all by user id");
+        }
     }
 
     @Override
     public void assignToUserByID(Long taskId, Long userId) {
-
+        try {
+            Connection connection = dataSourceConfig.getConnection();
+            PreparedStatement statement = connection.prepareStatement(ASSIGN);
+            statement.setLong(1, taskId);
+            statement.setLong(2, userId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new ResourceMappingException("Error while assigning to user");
+        }
     }
 
     @Override
     public void update(Task task) {
+        try {
+            Connection connection = dataSourceConfig.getConnection();
+            PreparedStatement statement = connection.prepareStatement(UPDATE);
+            statement.setString(1, task.getTitle());
 
+            String description = task.getDescription();
+            if (description != null) {
+                statement.setString(2, description);
+            } else {
+                statement.setNull(2, Types.VARCHAR);
+            }
+
+            if (task.getExpirationDate() == null) {
+                statement.setTimestamp(3, Timestamp.valueOf(task.getExpirationDate()));
+            } else {
+                statement.setNull(3, Types.TIMESTAMP);
+            }
+
+            statement.setString(4, task.getStatus().name());
+            statement.setLong(5, task.getId());
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new ResourceMappingException("Error while update user");
+        }
     }
 
     @Override
     public void create(Task task) {
+        try {
+            Connection connection = dataSourceConfig.getConnection();
+            PreparedStatement statement = connection.prepareStatement(CREATE, PreparedStatement.RETURN_GENERATED_KEYS);
+            statement.setString(1, task.getTitle());
 
+            String description = task.getDescription();
+            if (description != null) {
+                statement.setString(2, description);
+            } else {
+                statement.setNull(2, Types.VARCHAR);
+            }
+
+            if (task.getExpirationDate() == null) {
+                statement.setTimestamp(3, Timestamp.valueOf(task.getExpirationDate()));
+            } else {
+                statement.setNull(3, Types.TIMESTAMP);
+            }
+
+            statement.setString(4, task.getStatus().name());
+
+            statement.executeUpdate();
+
+            try (ResultSet rs = statement.getGeneratedKeys()) {
+                rs.next();
+                task.setId(rs.getLong(1));
+            }
+        } catch (SQLException e) {
+            throw new ResourceMappingException("Error while create user");
+        }
     }
 
     @Override
     public void delete(Long id) {
+        try {
+            Connection connection = dataSourceConfig.getConnection();
+            PreparedStatement statement = connection.prepareStatement(DELETE);
+            statement.setLong(5, id);
+            statement.executeUpdate();
 
+        } catch (SQLException e) {
+            throw new ResourceMappingException("Error while deleting user");
+        }
     }
 }
