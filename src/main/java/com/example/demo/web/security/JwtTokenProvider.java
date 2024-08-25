@@ -6,6 +6,10 @@ import com.example.demo.domain.user.User;
 import com.example.demo.service.UserService;
 import com.example.demo.service.props.JwtProperties;
 import com.example.demo.web.dto.auth.JwtResponse;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,7 +40,7 @@ public class JwtTokenProvider {
     }
 
     public String createAccessToken(Long userId, String username, Set<Role> roles) {
-        Claims claims = Jwts.claims().setSubject(username);
+        Claims claims = (Claims) Jwts.claims().setSubject(username);
         claims.put("id", userId);
         claims.put("roles", resolveRoles(roles));
         Date dateNow = new Date();
@@ -57,7 +61,7 @@ public class JwtTokenProvider {
     }
 
     public String createRefreshToken(Long userId, String username) {
-        Claims claims = Jwts.claims().setSubject(username);
+        Claims claims = (Claims) Jwts.claims().setSubject(username);
         claims.put("id", userId);
         Date dateNow = new Date();
         Date validity = new Date(dateNow.getTime() + jwtProperties.getAccess());
@@ -78,7 +82,7 @@ public class JwtTokenProvider {
         }
 
         Long userId = Long.valueOf(getId(refreshToken));
-        User user = userService.getByID();
+        User user = userService.getByID(userId);
         jwtResponse.setId(userId);
         jwtResponse.setUsername(user.getUsername());
         jwtResponse.setAccessToken(createAccessToken(userId, user.getUsername(), user.getRoles()));
@@ -88,8 +92,8 @@ public class JwtTokenProvider {
     }
 
     public boolean validateToken(String token) {
-        Jwts<Claims> claims = Jwts
-                .parserBuilder()
+        Jws<Claims> claims = Jwts
+                .parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token);
@@ -99,7 +103,7 @@ public class JwtTokenProvider {
 
     public String getId(String token) {
         return Jwts
-                .parserBuilder()
+                .parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
@@ -110,7 +114,7 @@ public class JwtTokenProvider {
 
     private String getUsername(String token) {
         return Jwts
-                .parserBuilder()
+                .parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)

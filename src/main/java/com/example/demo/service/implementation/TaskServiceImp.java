@@ -30,7 +30,7 @@ public class TaskServiceImp implements TaskService {
     @Transactional(readOnly = true)
     public List<Task> getAllByUserId(Long userId) {
 
-        return taskRepository.findAllByUserId(userId);
+        return taskRepository.findByUserId(userId);
     }
 
     @Override
