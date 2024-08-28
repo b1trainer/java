@@ -6,6 +6,10 @@ import com.example.demo.domain.user.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,18 +25,24 @@ public class UserServiceImp implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "UserService::getByID", key = "#id")
     public User getByID(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "UserService::getByUserName", key = "#username")
     public User getByUserName(String username) {
         return userRepository.findByUserName(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
     @Transactional
+    @Caching(put = {
+            @CachePut(value = "UserService::getByID", key = "#user.id"),
+            @CachePut(value = "UserService::getByUserName", key = "#user.username")
+    })
     public User update(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.update(user);
@@ -41,6 +51,10 @@ public class UserServiceImp implements UserService {
 
     @Override
     @Transactional
+    @Caching(cacheable = {
+            @Cacheable(value = "UserService::getByID", key = "#user.id"),
+            @Cacheable(value = "UserService::getByUserName", key = "#user.username")
+    })
     public User create(User user) {
         if (userRepository.findByUserName(user.getUsername()).isPresent()) {
             throw new IllegalStateException("User already exist");
@@ -61,12 +75,14 @@ public class UserServiceImp implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "UserService::isTaskOwner", key = "#userId + '.' + #taskId")
     public boolean isTaskOwner(Long userId, Long taskId) {
         return userRepository.isTaskOwner(userId, taskId);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "UserService::getById", key = "#id")
     public void delete(Long id) {
         userRepository.delete(id);
     }

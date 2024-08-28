@@ -3,10 +3,11 @@ package com.example.demo.domain.task;
 import jakarta.persistence.Id;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class Task {
+public class Task implements Serializable {
 
     private Long id;
 

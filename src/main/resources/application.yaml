@@ -22,3 +22,5 @@ security:
     refresh: 2592000000
 mybatis:
   mapper-locations: classpath:mybatis/mapper/*.xml
+springdoc:
+  override-with-generic-response: false

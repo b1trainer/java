@@ -4,11 +4,12 @@ import com.example.demo.domain.task.Task;
 import jakarta.persistence.Id;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
 @Data
-public class User {
+public class User implements Serializable {
 
     private Long id;
 
